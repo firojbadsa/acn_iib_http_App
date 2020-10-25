@@ -1,0 +1,46 @@
+BROKER SCHEMA com.acn.ibm.iib
+
+
+CREATE COMPUTE MODULE acn_iib_http_flow_transform
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		
+		CALL CopyMessageHeaders();
+		
+		
+		CREATE FIELD OutputRoot.JSON.Data.employee;
+		DECLARE RF_employee REFERENCE TO OutputRoot.JSON.Data.employee;
+
+		IF InputRoot.JSON.Data.employee.firstName='John' THEN
+			SET RF_employee.Id 		     = '100';
+			SET RF_employee.firstName	 = InputRoot.JSON.Data.employee.firstName;
+			SET RF_employee.lastName     = 'Doe';
+			
+		ELSEIF InputRoot.JSON.Data.employee.firstName='Anna' THEN
+			SET RF_employee.Id 		     = '101';
+			SET RF_employee.firstName	 = InputRoot.JSON.Data.employee.firstName;
+			SET RF_employee.lastName     = 'Smith';
+		
+		ELSEIF InputRoot.JSON.Data.employee.firstName='Peter' THEN
+			SET RF_employee.Id 		     = '102';
+			SET RF_employee.firstName	 = InputRoot.JSON.Data.employee.firstName;
+			SET RF_employee.lastName     = 'Jones';
+		END IF;
+		
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		SET OutputRoot = InputRoot;
+	END;
+END MODULE;
